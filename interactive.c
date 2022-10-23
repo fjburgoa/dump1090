@@ -416,7 +416,7 @@ void interactiveShowData(void) {
     char spinner[4] = "|/-\\";
 
     // Refresh screen every (MODES_INTERACTIVE_REFRESH_TIME) miliseconde
-    if ((mstime() - Modes.interactive_last_update) < 1500)
+    if ((mstime() - Modes.interactive_last_update) < 2000)
        {return;}
 
     Modes.interactive_last_update = mstime();
@@ -479,7 +479,8 @@ void interactiveShowData(void) {
 
                 if (Modes.interactive_rtl1090) { // RTL1090 display mode
 
-                    if (a->bFlags & MODES_ACFLAGS_ALTITUDE_VALID) {
+                    if (a->bFlags & MODES_ACFLAGS_ALTITUDE_VALID)
+                    {
                         snprintf(strFl,6,"F%03d",(altitude/100));
                     }
                     printf("%06x %-8s %-4s         %-3s %-3s %4s        %-6d  %-2d\n", 
@@ -502,8 +503,8 @@ void interactiveShowData(void) {
                     if (flags & MODEAC_MSG_MODEC_HIT) {strMode[3] = 'c';}
 
                     if (a->bFlags & MODES_ACFLAGS_LATLON_VALID) {
-                        snprintf(strLat, 8,"%7.03f", a->lat);
-                        snprintf(strLon, 9,"%8.03f", a->lon);
+                        snprintf(strLat, 8,"%.5f", a->lat);
+                        snprintf(strLon, 9,"%.5f", a->lon);
                     }
 
                     if (a->bFlags & MODES_ACFLAGS_AOG) {
@@ -516,7 +517,8 @@ void interactiveShowData(void) {
                     //a->addr, strMode, strSquawk, a->flight, strFl, strGs, strTt,
                     //strLat, strLon, signalAverage, msgs, (int)(now - a->seen));
 
-                    printf("%06X %s %s %s\n",a->addr, strMode, strSquawk, a->flight);
+                    //printf("%06X %s %s %s %s\n",a->addr, strSquawk, a->flight, strFl, strGs);
+                    printf("%06X %s %s %s %s\n",a->addr, strFl, strGs, strLat, strLon);
                     
 
 
