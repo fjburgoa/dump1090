@@ -415,9 +415,14 @@ void interactiveShowData(void) {
     char progress;
     char spinner[4] = "|/-\\";
 
+    char myArray[2048] = { 0 };
+    char myLocalArray[50] = { 0 };
+
     // Refresh screen every (MODES_INTERACTIVE_REFRESH_TIME) miliseconde
-    if ((mstime() - Modes.interactive_last_update) < 2000)
-       {return;}
+    if ((mstime() - Modes.interactive_last_update) < 1000)
+    {
+         return;
+    }
 
     Modes.interactive_last_update = mstime();
 
@@ -426,24 +431,13 @@ void interactiveShowData(void) {
     // in from a raw input port which we can't turn off.
     interactiveUpdateAircraftModeS();
 
-    progress = spinner[time(NULL)%4];
+    //progress = spinner[time(NULL)%4];
 
-#ifndef _WIN32
-    printf("\x1b[H\x1b[2J");    // Clear the screen
-#else
-    cls();
-#endif
+    //printf("\x1b[H\x1b[2J");    // Clear the screen
 
-    if (Modes.interactive_rtl1090 == 0) {
-    //    printf ("Hex     Mode  Sqwk  Flight   Alt    Spd  Hdg    Lat      Long   Sig  Msgs   Ti%c\n", progress);
-    } else {
-    //    printf ("Hex    Flight   Alt      V/S GS  TT  SSR  G*456^ Msgs    Seen %c\n", progress);
-    }
-    //printf("-------------------------------------------------------------------------------\n");
-    printf("#\n");
+    strcat(myArray, "#\n");
     while(a && (count < Modes.interactive_rows)) 
     {
-
         if ((now - a->seen) < Modes.interactive_display_ttl)
             {
             int msgs  = a->messages;
@@ -510,7 +504,7 @@ void interactiveShowData(void) {
                     if (a->bFlags & MODES_ACFLAGS_AOG) {
                         snprintf(strFl, 6," grnd");
                     } else if (a->bFlags & MODES_ACFLAGS_ALTITUDE_VALID) {
-                        snprintf(strFl, 6, "%5d", altitude);
+                        snprintf(strFl, 6, "%05d", altitude);
                     }
 
                     //printf("%06X  %-4s  %-4s  %-8s %5s  %3s  %3s  %7s %8s  %3d %5d   %2d\n",
@@ -518,17 +512,18 @@ void interactiveShowData(void) {
                     //strLat, strLon, signalAverage, msgs, (int)(now - a->seen));
 
                     //printf("%06X %s %s %s %s\n",a->addr, strSquawk, a->flight, strFl, strGs);
-                    printf("%06X %s %s %s %s\n",a->addr, strFl, strGs, strLat, strLon);
-                    
-
-
+                    //printf("%06X %s %s %s %s\n",a->addr, strFl, strGs, strLat, strLon);
+                    sprintf(myLocalArray, "a%06Xb%sc%sd%se%s\n", a->addr, strFl, strGs, strLat, strLon);
+                    strcat(myArray, myLocalArray);
+                    memset(myLocalArray, 0, 35);
                 }
                 count++;
             }
         }
         a = a->next;
     }
-    printf("*\n");
+    strcat(myArray, "*\n");
+    printf(myArray);
 }
 //
 //=========================================================================

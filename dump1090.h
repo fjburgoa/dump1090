@@ -74,11 +74,11 @@
     #define MODES_USER_LATITUDE_DFLT   (USER_LATITUDE)
     #define MODES_USER_LONGITUDE_DFLT  (USER_LONGITUDE)
 #else
-    #define MODES_USER_LATITUDE_DFLT   (0.0)
-    #define MODES_USER_LONGITUDE_DFLT  (0.0)
+    #define MODES_USER_LATITUDE_DFLT   40.4165       //Madrid
+    #define MODES_USER_LONGITUDE_DFLT  -3.70256      //Madrid  
 #endif
 
-#define MODES_DEFAULT_PPM          52
+#define MODES_DEFAULT_PPM          0
 #define MODES_DEFAULT_RATE         2000000
 #define MODES_DEFAULT_FREQ         1090000000
 #define MODES_DEFAULT_WIDTH        1000
@@ -163,7 +163,7 @@
 #define MODES_INTERACTIVE_REFRESH_TIME 1000      // Milliseconds
 #define MODES_INTERACTIVE_ROWS          22      // Rows on screen
 #define MODES_INTERACTIVE_DELETE_TTL   300      // Delete from the list after 300 seconds
-#define MODES_INTERACTIVE_DISPLAY_TTL   60      // Delete from display after 60 seconds
+#define MODES_INTERACTIVE_DISPLAY_TTL   30      // Delete from display after 60 seconds
 
 #define MODES_NET_HEARTBEAT_RATE       900      // Each block is approx 65mS - default is > 1 min
 

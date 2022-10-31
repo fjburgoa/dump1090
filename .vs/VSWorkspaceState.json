@@ -1,11 +1,7 @@
 {
   "ExpandedNodes": [
-    "",
-    "\\pthreads",
-    "\\public_html",
-    "\\rtlsdr",
-    "\\tools"
+    ""
   ],
-  "SelectedNode": "\\makeppup1090",
+  "SelectedNode": "\\Makefile",
   "PreviewInSolutionExplorer": false
 }
