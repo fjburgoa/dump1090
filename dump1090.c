@@ -20,10 +20,18 @@ int getTermRows() {
 // Handle resizing terminal
 //
 void sigWinchCallback() {
+    pthread_t mypth1;
+    
+    printf("en SigWinchCallback\n");
+
     signal(SIGWINCH, SIG_IGN);
     Modes.interactive_rows = getTermRows();
-    interactiveShowData();
-    signal(SIGWINCH, sigWinchCallback); 
+    //interactiveShowData();
+    pthread_create(&mypth1, NULL, interactiveShowData, NULL);
+    pthread_join(mypth1, NULL);
+    signal(SIGWINCH, sigWinchCallback);
+
+
 }
 //
 // =============================== Initialization ===========================
@@ -296,6 +304,27 @@ void snipMode(int level) {
         putchar(q);
     }
 }
+
+
+//
+//=========================================================================
+//
+// This thread reads from the console data that comes from MEGA 2560
+//
+void *read_terminal(void *arg)
+{    
+    char mybuffer[50];
+    while (1)
+    {
+        //gets(mybuffer);
+        fgets(mybuffer, 50, stdin);
+        printf("%s\n", mybuffer);
+        memcpy((char*)arg, mybuffer, 50);
+        memset(mybuffer, 0, 50);
+    }
+}
+
+
 //
 //=========================================================================
 //
@@ -305,12 +334,17 @@ void snipMode(int level) {
 //
 void backgroundTasks(void) {
  
+    pthread_t mypth1;
+    
     // If Modes.aircrafts is not NULL, remove any stale aircraft
     if (Modes.aircrafts) 
         interactiveRemoveStaleAircrafts();
 
     // Refresh screen when in interactive mode
-    interactiveShowData();
+    //interactiveShowData();
+    pthread_create(&mypth1, NULL, interactiveShowData, NULL);    
+    pthread_join(mypth1, NULL);
+    
  
 }
 //
@@ -339,6 +373,11 @@ int main (void)
     // Create the thread that will read the data from the device.
     pthread_create(&Modes.reader_thread, NULL, readerThreadEntryPoint, NULL);
     pthread_mutex_lock(&Modes.data_mutex);
+
+    // Create the thread that will read the data from the terminal (term or serial)
+    pthread_t read_console_thread;
+    pthread_create(&read_console_thread, NULL, read_terminal, (void *)Modes.mybuffer);
+
 
     while (Modes.exit == 0) 
     {
@@ -399,7 +438,10 @@ int main (void)
     pthread_mutex_destroy(&Modes.data_mutex);
     pthread_join(Modes.reader_thread,NULL);     // Wait on reader thread exit
 
-
+    if (read_console_thread)
+        if (pthread_cancel(read_console_thread) == 0)
+            printf("\nread console thread exit properly\n");
+ 
     pthread_exit(0);
 }
  

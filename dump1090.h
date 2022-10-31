@@ -370,6 +370,9 @@ struct {                             // Internal state
 
     unsigned int stat_blocks_processed;
     unsigned int stat_blocks_dropped;
+
+    char mybuffer[50];  //almacena los datos recibidos de MEGA2650 (que vienen del GPS)
+
 } Modes;
 
 // The struct we use to store information about a decoded message.
@@ -444,7 +447,7 @@ void modesInitErrorInfo ();
 // Functions exported from interactive.c
 //
 struct aircraft* interactiveReceiveData(struct modesMessage *mm);
-void  interactiveShowData(void);
+void  *interactiveShowData(void);
 void  interactiveRemoveStaleAircrafts(void);
 int   decodeBinMessage   (struct client *c, char *p);
 struct aircraft *interactiveFindAircraft(uint32_t addr);
