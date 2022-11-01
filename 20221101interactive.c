@@ -414,20 +414,17 @@ void *interactiveShowData(void)
     struct aircraft *a = Modes.aircrafts;
     time_t now = time(NULL);
     int count = 0;
-  
-    char myArray[1024] = { 0 };
-    char myLocalArray[MAXTEXTLINE] = { 0 };
-    struct  MyAircraft  myaircft[MAX_ROWS] = { 0 };
-    struct  MyPosition  myPos = { 0 };
+    //char progress;
+    //char spinner[4] = "|/-\\";
 
-    myPos.lat = 40.491680;
-    myPos.lon = -3.685190;
-    myPos.height = 657;
-
+    char myArray[2048] = { 0 };
+    char myLocalArray[50] = { 0 };
 
     // Refresh screen every (MODES_INTERACTIVE_REFRESH_TIME) miliseconde
     if ((mstime() - Modes.interactive_last_update) < 1000)
+    {
          return NULL;
+    }
 
     Modes.interactive_last_update = mstime();
 
@@ -436,73 +433,105 @@ void *interactiveShowData(void)
     // in from a raw input port which we can't turn off.
     interactiveUpdateAircraftModeS();
 
+    //progress = spinner[time(NULL)%4];
+
+    //printf("\x1b[H\x1b[2J");    // Clear the screen
+
+    strcat(myArray, "#\n");
+
+
     while(a && (count < Modes.interactive_rows)) 
     {
         if ((now - a->seen) < Modes.interactive_display_ttl)
-        {
+            {
             int msgs  = a->messages;
             int flags = a->modeACflags;
 
             if ( (((flags & (MODEAC_MSG_FLAG                             )) == 0                    )                 )
               || (((flags & (MODEAC_MSG_MODES_HIT | MODEAC_MSG_MODEA_ONLY)) == MODEAC_MSG_MODEA_ONLY) && (msgs > 4  ) ) 
               || (((flags & (MODEAC_MSG_MODES_HIT | MODEAC_MSG_MODEC_OLD )) == 0                    ) && (msgs > 127) ) 
-              ) 
-            {
-                //int altitude = (int) (a->altitude / 3.2828);
-                //int speed    = (int) (a->speed * 1.852);
+              ) {
+                int altitude = a->altitude, speed = a->speed;
+                char strSquawk[5] = " ";
+                char strFl[6]     = " ";
+                char strTt[5]     = " ";
+                char strGs[5]     = " ";
 
-                if (a->bFlags & MODES_ACFLAGS_SPEED_VALID) 
-                    myaircft[count].Vel = a->speed;
-
-                if (msgs > 99999) 
-                    msgs = 99999;
-
-                if (a->bFlags & MODES_ACFLAGS_LATLON_VALID) 
-                {
-                    myaircft[count].lat = a->lat;
-                    myaircft[count].lon = a->lon;
+                // Convert units to metric if --metric was specified
+                if (Modes.metric) {
+                    altitude = (int) (altitude / 3.2828);
+                    speed    = (int) (speed    * 1.852);
                 }
 
-                if (a->bFlags & MODES_ACFLAGS_AOG) 
-                    myaircft[count].Alt = 0;
-                else if (a->bFlags & MODES_ACFLAGS_ALTITUDE_VALID) 
-                    myaircft[count].Alt = a->altitude*FEET2M;
+                if (a->bFlags & MODES_ACFLAGS_SQUAWK_VALID) {
+                    snprintf(strSquawk,5,"%04x", a->modeA);}
 
-                myaircft[count].addr = a->addr;
+                if (a->bFlags & MODES_ACFLAGS_SPEED_VALID) {
+                    snprintf (strGs, 5,"%3d", speed);}
 
+                if (a->bFlags & MODES_ACFLAGS_HEADING_VALID) {
+                    snprintf (strTt, 5,"%03d", a->track);}
+
+                if (msgs > 99999) {
+                    msgs = 99999;}
+
+                if (Modes.interactive_rtl1090) { // RTL1090 display mode
+                /*
+                    if (a->bFlags & MODES_ACFLAGS_ALTITUDE_VALID)
+                    {
+                        snprintf(strFl,6,"F%03d",(altitude/100));
+                    }
+                    printf("%06x %-8s %-4s         %-3s %-3s %4s        %-6d  %-2d\n", 
+                    a->addr, a->flight, strFl, strGs, strTt, strSquawk, msgs, (int)(now - a->seen));
+                */
+                } else {                         // Dump1090 display mode
+                    //char strMode[5]               = "    ";
+                    char strLat[8]                = " ";
+                    char strLon[9]                = " ";
+                    //unsigned char * pSig       = a->signalLevel;
+                    /*
+                    unsigned int signalAverage = (pSig[0] + pSig[1] + pSig[2] + pSig[3] + 
+                                                  pSig[4] + pSig[5] + pSig[6] + pSig[7] + 3) >> 3; 
+                    */
+                    /*
+                    if ((flags & MODEAC_MSG_FLAG) == 0) {
+                        strMode[0] = 'S';
+                    } else if (flags & MODEAC_MSG_MODEA_ONLY) {
+                        strMode[0] = 'A';
+                    }
+                    if (flags & MODEAC_MSG_MODEA_HIT) {strMode[2] = 'a';}
+                    if (flags & MODEAC_MSG_MODEC_HIT) {strMode[3] = 'c';}
+                    */
+                    if (a->bFlags & MODES_ACFLAGS_LATLON_VALID) {
+                        snprintf(strLat, 8,"%.5f", a->lat);
+                        snprintf(strLon, 9,"%.5f", a->lon);
+                    }
+
+                    if (a->bFlags & MODES_ACFLAGS_AOG) {
+                        snprintf(strFl, 6," grnd");
+                    } else if (a->bFlags & MODES_ACFLAGS_ALTITUDE_VALID) {
+                        snprintf(strFl, 6, "%05d", altitude);
+                    }
+
+                    //printf("%06X  %-4s  %-4s  %-8s %5s  %3s  %3s  %7s %8s  %3d %5d   %2d\n",
+                    //a->addr, strMode, strSquawk, a->flight, strFl, strGs, strTt,
+                    //strLat, strLon, signalAverage, msgs, (int)(now - a->seen));
+
+                    //printf("%06X %s %s %s %s\n",a->addr, strSquawk, a->flight, strFl, strGs);
+                    //printf("%06X %s %s %s %s\n",a->addr, strFl, strGs, strLat, strLon);
+                    sprintf(myLocalArray, "a%06Xb%sc%sd%se%s\n", a->addr, strFl, strGs, strLat, strLon);
+                    strcat(myArray, myLocalArray);
+                    memset(myLocalArray, 0, 35);
+                }
                 count++;
             }
         }
         a = a->next;
     }
+    //añade al mensaje la posición local recibida (sii es que se ha recibido algo claro...)
+    if (Modes.mybuffer[0] != 0)
+        strcat(myArray, Modes.mybuffer);
 
-    computeDistance2(&myPos, myaircft);
-    
-    printf("\x1b[H\x1b[2J");
-
-    strcat(myArray, "#\n");
-    for (int i = 0; i < MAX_ROWS; i++)
-    {
-        sprintf(myLocalArray, "%06X %05d %03d %.5f %.5f %.1f %.1f %.1f\n", myaircft[i].addr,
-            myaircft[i].Alt,
-            myaircft[i].Vel,
-            myaircft[i].lat,
-            myaircft[i].lon,
-            myaircft[i].dh,
-            myaircft[i].dv,
-            myaircft[i].dist);
-        strcat(myArray, myLocalArray);
-        memset(myLocalArray, 0, MAXTEXTLINE);
-    }
-    sprintf(myLocalArray, "%06X %05d %03d %.5f %.5f %.1f %.1f %.1f\n", 99999,
-        myPos.height,
-        0,
-        myPos.lat,
-        myPos.lon,
-        0.0f,
-        0.0f,
-        0.0f);
-    strcat(myArray, myLocalArray);
     strcat(myArray, "*\n");
     printf(myArray);
 
@@ -543,24 +572,3 @@ void interactiveRemoveStaleAircrafts(void) {
 //
 //=========================================================================
 //
-
-
-void computeDistance2(struct MyPosition* pos, struct MyAircraft* acft)
-{
-    //de: https://programmerclick.com/article/2265493811/
-
-    float wA = pos->lat * PI / 180.0f;
-    float jA = pos->lon * PI / 180.0f;
-
-    for (int j = 0; j < 10; j++)
-    {
-        if ((abs(acft[j].lon) > 0.1) || (abs(acft[j].lat) > 0.1))
-        {
-            float wB = acft[j].lat * PI / 180.0f;
-            float jB = acft[j].lon * PI / 180.0f;
-            acft[j].dh = 0.001* (RADIO * acos(cos(wA) * cos(wB) * cos(jB - jA) + sin(wA) * sin(wB)));
-            acft[j].dv = 0.001 * (acft[j].Alt * FEET2M - pos->height);
-            acft[j].dist = sqrt(acft[j].dh * acft[j].dh + acft[j].dv * acft[j].dv);
-        }
-    }
-}

@@ -182,14 +182,6 @@
 #define HTMLPATH   "./public_html"      // default path for gmap.html etc
 #endif
 
-
-#define MAX_ROWS 15
-#define RADIO 6371e3
-#define PI 3.1415926535
-#define FEET2M 0.3048
-#define MAXTEXTLINE 55
-
-
 #define MODES_NOTUSED(V) ((void) V)
 
 //======================== structure declarations =========================
@@ -427,27 +419,6 @@ struct modesMessage {
     int  bFlags;                // Flags related to fields in this structure
 };
 
-struct MyAircraft
-{
-    uint32_t addr;
-    int  Alt;
-    int  Vel;
-    double lat;
-    double lon;
-    char row;
-    double dh;
-    double dv;
-    double dist;
-};
-
-struct MyPosition
-{
-    double lat;
-    double lon;
-    int height;
-};
-
-
 // ======================== function declarations =========================
 
 #ifdef __cplusplus
@@ -481,7 +452,6 @@ void  interactiveRemoveStaleAircrafts(void);
 int   decodeBinMessage   (struct client *c, char *p);
 struct aircraft *interactiveFindAircraft(uint32_t addr);
 struct stDF     *interactiveFindDF      (uint32_t addr);
-void computeDistance2(struct MyPosition* p, struct MyAircraft* a);
 
 //
 // Functions exported from net_io.c
